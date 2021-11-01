@@ -25,15 +25,16 @@ def convert(file, output_filepath = None):
     with open(file, 'r') as input_file:
         nexo_reader   = csv.DictReader(input_file, delimiter=',')
         reader_tuple = []
+        date_regex = re.compile(r"(\d+)-(\d+)-(\d+)\s+(\d+):(\d+):(\d+)")
         for row in nexo_reader:
             reader_tuple.append((
                 datetime.datetime(
-                    year=int(re.search(r"(\d+)-(\d+)-(\d+)\s+(\d+):(\d+):(\d+)", row['Date / Time']).group(1)),
-                    month=int(re.search(r"(\d+)-(\d+)-(\d+)\s+(\d+):(\d+):(\d+)", row['Date / Time']).group(2)),
-                    day=int(re.search(r"(\d+)-(\d+)-(\d+)\s+(\d+):(\d+):(\d+)", row['Date / Time']).group(3)),
-                    hour=int(re.search(r"(\d+)-(\d+)-(\d+)\s+(\d+):(\d+):(\d+)", row['Date / Time']).group(4)),
-                    minute=int(re.search(r"(\d+)-(\d+)-(\d+)\s+(\d+):(\d+):(\d+)", row['Date / Time']).group(5)),
-                    second=int(re.search(r"(\d+)-(\d+)-(\d+)\s+(\d+):(\d+):(\d+)", row['Date / Time']).group(6))),
+                    year=int(date_regex.search(row['Date / Time']).group(1)),
+                    month=int(date_regex.search(row['Date / Time']).group(2)),
+                    day=int(date_regex.search(row['Date / Time']).group(3)),
+                    hour=int(date_regex.search(row['Date / Time']).group(4)),
+                    minute=int(date_regex.search(row['Date / Time']).group(5)),
+                    second=int(date_regex.search(row['Date / Time']).group(6))),
                 row['Type'],
                 row['Currency'],
                 row['Amount'],
@@ -49,7 +50,7 @@ def convert(file, output_filepath = None):
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
                 for row in sorted_tuple:
-                    if row[NexoTupleEnum.Type] == 'Interest':
+                    if row[NexoTupleEnum.Type] == 'Interest' or row[NexoTupleEnum.Type] == 'FixedTermInterest':
                         writer.writerow({'Date':  convert_date_time(row[NexoTupleEnum.Date]), 'Received Quantity': row[NexoTupleEnum.Amount], 'Received Currency': row[NexoTupleEnum.Currency] if row[NexoTupleEnum.Currency] != 'NEXONEXO' else 'NEXO', 'Sent Quantity': '', 'Sent Currency': '', 'Fee Amount': '', 'Fee Currency': '', 'Tag': 'staked'})
                     elif row[NexoTupleEnum.Type] == 'LockingTermDeposit':
                         continue
