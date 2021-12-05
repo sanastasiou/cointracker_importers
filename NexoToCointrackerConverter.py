@@ -21,6 +21,14 @@ def parse_args():
 def convert_date_time(date):
     return f"{date.month:02d}/{date.day:02d}/{date.year} {date.hour:02d}:{date.minute:02d}:{date.second:02d}"
 
+def convert_to_valid_currency(currency):
+    if currency == 'NEXONEXO':
+        return 'NEXO'
+    elif currency == 'USDTERC':
+        return 'USDT'
+    else:
+        return currency
+
 def convert(file, output_filepath = None):
     with open(file, 'r') as input_file:
         nexo_reader   = csv.DictReader(input_file, delimiter=',')
@@ -51,13 +59,19 @@ def convert(file, output_filepath = None):
                 writer.writeheader()
                 for row in sorted_tuple:
                     if row[NexoTupleEnum.Type] == 'Interest' or row[NexoTupleEnum.Type] == 'FixedTermInterest':
-                        writer.writerow({'Date':  convert_date_time(row[NexoTupleEnum.Date]), 'Received Quantity': row[NexoTupleEnum.Amount], 'Received Currency': row[NexoTupleEnum.Currency] if row[NexoTupleEnum.Currency] != 'NEXONEXO' else 'NEXO', 'Sent Quantity': '', 'Sent Currency': '', 'Fee Amount': '', 'Fee Currency': '', 'Tag': 'staked'})
+                        writer.writerow({'Date':  convert_date_time(row[NexoTupleEnum.Date]), 'Received Quantity': row[NexoTupleEnum.Amount], 'Received Currency': convert_to_valid_currency(row[NexoTupleEnum.Currency]), 'Sent Quantity': '', 'Sent Currency': '', 'Fee Amount': '', 'Fee Currency': '', 'Tag': 'staked'})
+                    elif row[NexoTupleEnum.Type] == 'Exchange':
+                        pair    = row[NexoTupleEnum.Currency].strip().split("/")
+                        amounts = row[NexoTupleEnum.Amount].strip().split("/")
+                        amounts[0] = amounts[0].strip()[1:]
+                        amounts[1] = amounts[1].strip()[1:]
+                        writer.writerow({'Date': convert_date_time(row[NexoTupleEnum.Date]), 'Received Quantity': amounts[1].strip(), 'Received Currency': convert_to_valid_currency(pair[1].strip()), 'Sent Quantity': amounts[0].strip(), 'Sent Currency': convert_to_valid_currency(pair[0].strip()), 'Fee Amount': '', 'Fee Currency': '', 'Tag': ''})
                     elif row[NexoTupleEnum.Type] == 'LockingTermDeposit':
                         continue
                     elif row[NexoTupleEnum.Type] == 'Deposit':
-                        writer.writerow({'Date': convert_date_time(row[NexoTupleEnum.Date]), 'Received Quantity': row[NexoTupleEnum.Amount], 'Received Currency': row[NexoTupleEnum.Currency] if row[NexoTupleEnum.Currency] != 'NEXONEXO' else 'NEXO', 'Sent Quantity': '', 'Sent Currency': '', 'Fee Amount': '', 'Fee Currency': '', 'Tag': ''})
+                        writer.writerow({'Date': convert_date_time(row[NexoTupleEnum.Date]), 'Received Quantity': row[NexoTupleEnum.Amount], 'Received Currency': convert_to_valid_currency(row[NexoTupleEnum.Currency]), 'Sent Quantity': '', 'Sent Currency': '', 'Fee Amount': '', 'Fee Currency': '', 'Tag': ''})
                     elif row[NexoTupleEnum.Type] == 'Withdrawal':
-                        writer.writerow({'Date': convert_date_time(row[NexoTupleEnum.Date]), 'Received Quantity': '', 'Received Currency': '', 'Sent Quantity': row[NexoTupleEnum.Amount], 'Sent Currency': row[NexoTupleEnum.Currency] if row[NexoTupleEnum.Currency] != 'NEXONEXO' else 'NEXO', 'Fee Amount': 0, 'Fee Currency': row[NexoTupleEnum.Currency] if row[NexoTupleEnum.Currency] != 'NEXONEXO' else 'NEXO', 'Tag': ''})
+                        writer.writerow({'Date': convert_date_time(row[NexoTupleEnum.Date]), 'Received Quantity': '', 'Received Currency': '', 'Sent Quantity': row[NexoTupleEnum.Amount][1:], 'Sent Currency': convert_to_valid_currency(row[NexoTupleEnum.Currency]), 'Fee Amount': 0, 'Fee Currency': convert_to_valid_currency(row[NexoTupleEnum.Currency]), 'Tag': ''})
             print(f"Cointracker compatible file written to: {output_file}.")
     return
 
