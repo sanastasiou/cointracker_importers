@@ -14,7 +14,7 @@ class NexoTupleEnum:
 def parse_args():
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@', description = "Script which modifies nexo csv file for consumption by cointracker.")
     parser.add_argument('--nexo', required = True, metavar = 'FILENAME', help ="Nexo csv file to modify")
-    parser.add_argument("--out", type=float, required = False, metavar = 'FILENAME', help = "Filepath for output file. If ommited, output file is created in the same directory as input file.")
+    parser.add_argument("--out", type=str, required = False, metavar = 'FILENAME', help = "Filepath for output file. If ommited, output file is created in the same directory as input file.")
     args = parser.parse_args()
     return args
 
@@ -58,7 +58,7 @@ def convert(file, output_filepath = None):
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
                 for row in sorted_tuple:
-                    if row[NexoTupleEnum.Type] == 'Interest' or row[NexoTupleEnum.Type] == 'FixedTermInterest':
+                    if (row[NexoTupleEnum.Type] == 'Interest' or row[NexoTupleEnum.Type] == 'FixedTermInterest') and float(row[NexoTupleEnum.Amount]) > 0.0: #Do not import loan interest to cointracker
                         writer.writerow({'Date':  convert_date_time(row[NexoTupleEnum.Date]), 'Received Quantity': row[NexoTupleEnum.Amount], 'Received Currency': convert_to_valid_currency(row[NexoTupleEnum.Currency]), 'Sent Quantity': '', 'Sent Currency': '', 'Fee Amount': '', 'Fee Currency': '', 'Tag': 'staked'})
                     elif row[NexoTupleEnum.Type] == 'Exchange':
                         pair    = row[NexoTupleEnum.Currency].strip().split("/")
