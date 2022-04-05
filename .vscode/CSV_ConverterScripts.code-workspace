@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+    ],
+    "settings": {
+	        "terminal.integrated.profiles.windows": {
+            "Git Bash": {
+                "source": "Git Bash"
+            }
+        },
+        "terminal.integrated.scrollback": 10000,
+        "terminal.integrated.fontFamily": "Lucida Console",
+        "python.venvPath": "/c/Users/stefa/Anaconda3/envs",
+        "python.terminal.activateEnvironment": true,
+        "terminal.integrated.cursorStyle": "underline",
+        "terminal.integrated.cursorBlinking": true,
+        "terminal.integrated.copyOnSelection": true,
+        "terminal.integrated.fontSize": 12,
+        "C_Cpp.clang_format_fallbackStyle": "none",
+        "C_Cpp.clang_format_sortIncludes": true,
+        "editor.fontLigatures": true,
+        "editor.fontSize": 12,
+        "git.ignoreLimitWarning": true,
+	}
+}
